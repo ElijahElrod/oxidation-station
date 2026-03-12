@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rust Roadmap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #faf8f5; font-family: 'Source Serif 4', Georgia, serif; color: #1a1a1a; }
+  a { color: inherit; }
+
+  /* Hero */
+  .hero {
+    background: #1a1a1a;
+    color: #faf8f5;
+    padding: 4rem 2rem 3.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 80% 50%, #2a1a0a, transparent 60%),
+                radial-gradient(circle at 20% 80%, #0a1a2a, transparent 50%);
+  }
+  .hero-inner { max-width: 900px; margin: 0 auto; position: relative; }
+  .hero-eyebrow {
+    display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;
+  }
+  .hero-eyebrow-line { width: 36px; height: 3px; background: #e8522a; flex-shrink: 0; }
+  .hero-eyebrow-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: #888;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.8rem, 6vw, 4.5rem);
+    font-weight: 900; line-height: 1.05;
+    margin-bottom: 1.25rem; letter-spacing: -0.02em;
+  }
+  .hero h1 span { color: #e8522a; }
+  .hero-sub {
+    font-size: 1.1rem; color: #aaa; max-width: 520px;
+    line-height: 1.7; font-weight: 300; font-style: italic;
+  }
+  .hero-stats { display: flex; gap: 2.5rem; margin-top: 2.5rem; flex-wrap: wrap; }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem; font-weight: 700; color: #fff;
+  }
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: #666; margin-top: 2px;
+  }
+
+  /* Filter bar */
+  .filter-bar {
+    border-bottom: 1px solid #e8e4df;
+    background: #faf8f5;
+    position: sticky; top: 0; z-index: 10;
+    overflow-x: auto;
+  }
+  .filter-inner { max-width: 900px; margin: 0 auto; display: flex; }
+  .filter-btn {
+    padding: 0.85rem 1rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;
+    color: #999; background: transparent; border: none; border-bottom: 2px solid transparent;
+    cursor: pointer; white-space: nowrap; transition: all 0.15s;
+  }
+  .filter-btn:hover { opacity: 0.7; }
+  .filter-btn.active { border-bottom-color: var(--phase-color); color: var(--phase-color); }
+
+  /* Cards */
+  .cards { max-width: 900px; margin: 0 auto; padding: 2.5rem 2rem; }
+  .card-list { display: flex; flex-direction: column; gap: 1rem; }
+
+  .card {
+    background: #fff;
+    border: 1px solid #ede9e3;
+    border-left: 4px solid var(--phase-dot);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
+  .card.open { border-color: var(--phase-dot); box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
+
+  .card-header {
+    width: 100%; background: transparent; border: none;
+    cursor: pointer; padding: 1.25rem 1.5rem;
+    display: flex; align-items: center; gap: 1.25rem;
+    text-align: left;
+  }
+  .card-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; color: #bbb; min-width: 24px; font-weight: 500; flex-shrink: 0;
+  }
+  .card-title-wrap { flex: 1; min-width: 0; }
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem; font-weight: 700; color: #1a1a1a;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card-phase {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--phase-dot); margin-top: 3px;
+  }
+  .card-tags { display: flex; gap: 0.35rem; flex-shrink: 0; }
+  @media (max-width: 500px) { .card-tags { display: none; } }
+  .tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.05em;
+    padding: 0.2rem 0.55rem;
+    background: var(--phase-light);
+    color: var(--phase-color);
+    border-radius: 3px;
+    border: 1px solid color-mix(in srgb, var(--phase-dot) 20%, transparent);
+    white-space: nowrap;
+  }
+  .card-diff { display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0; }
+  .diff-dots { display: flex; gap: 3px; }
+  .diff-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .diff-dot.on { background: var(--phase-dot); }
+  .diff-dot.off { background: #e8e4df; }
+  .diff-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem; color: #bbb; letter-spacing: 0.05em;
+  }
+  .card-time {
+    display: flex; flex-direction: column; align-items: flex-end;
+    gap: 2px; flex-shrink: 0; padding-left: 0.75rem;
+    border-left: 1px solid #ede9e3;
+  }
+  @media (max-width: 600px) { .card-time { display: none; } }
+  .time-weeks {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; font-weight: 500; color: #555; white-space: nowrap;
+  }
+  .time-hours {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem; color: #bbb; white-space: nowrap;
+  }
+  .time-block {
+    display: flex; gap: 2.5rem; padding: 0.75rem 1.5rem;
+    border-top: 1px solid color-mix(in srgb, var(--phase-dot) 15%, transparent);
+    background: color-mix(in srgb, var(--phase-light) 60%, white);
+    align-items: center; flex-wrap: wrap;
+  }
+  .time-block-item { display: flex; flex-direction: column; gap: 2px; }
+  .time-block-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: #aaa;
+  }
+  .time-block-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem; font-weight: 500; color: var(--phase-color);
+  }
+  .chevron { color: #ccc; font-size: 0.75rem; flex-shrink: 0; transition: transform 0.2s; }
+  .card.open .chevron { transform: rotate(180deg); }
+
+  /* Expanded */
+  .card-body {
+    border-top: 1px solid color-mix(in srgb, var(--phase-dot) 20%, transparent);
+    background: var(--phase-light);
+    display: none;
+  }
+  .card.open .card-body { display: block; }
+
+  .card-all-tags {
+    padding: 1rem 1.5rem 0;
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+  }
+  .tag-full {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.05em;
+    padding: 0.2rem 0.6rem;
+    background: #fff;
+    color: var(--phase-color);
+    border-radius: 3px;
+    border: 1px solid color-mix(in srgb, var(--phase-dot) 30%, transparent);
+  }
+  .card-desc {
+    font-size: 0.95rem; line-height: 1.75; color: #333;
+    padding: 0.9rem 1.5rem 1rem; font-weight: 300;
+  }
+  .card-resources {
+    border-top: 1px solid color-mix(in srgb, var(--phase-dot) 15%, transparent);
+    padding: 0.9rem 1.5rem 1.2rem;
+  }
+  .resources-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: #aaa; margin-bottom: 0.5rem;
+  }
+  .resource-link {
+    display: flex; align-items: baseline; gap: 0.6rem;
+    font-size: 0.88rem; color: var(--phase-color);
+    text-decoration: none; margin-bottom: 0.45rem;
+    transition: opacity 0.15s;
+  }
+  .resource-link:hover { opacity: 0.7; text-decoration: underline; }
+  .resource-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem; color: var(--phase-dot); flex-shrink: 0;
+  }
+
+  /* Legend */
+  .legend {
+    margin-top: 3rem; padding-top: 2rem;
+    border-top: 1px solid #e8e4df;
+    display: flex; gap: 1.5rem; flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.08em; color: #888; text-transform: uppercase;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">
+      <div class="hero-eyebrow-line"></div>
+      <span class="hero-eyebrow-text">Learning Roadmap</span>
+    </div>
+    <h1>Rust,<br><span>deeply.</span></h1>
+    <p class="hero-sub">14 projects from thread pools to SIMD — a complete path through systems programming, the type system, async internals, and FFI.</p>
+    <div class="hero-stats">
+      <div><div class="stat-num">14</div><div class="stat-label">Projects</div></div>
+      <div><div class="stat-num">8</div><div class="stat-label">Phases</div></div>
+      <div><div class="stat-num">42</div><div class="stat-label">Resources</div></div>
+      <div><div class="stat-num">~350–600</div><div class="stat-label">Total hours</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <div class="filter-inner" id="filter-bar"></div>
+</div>
+
+<div class="cards">
+  <div class="card-list" id="card-list"></div>
+  <div class="legend" id="legend"></div>
+</div>
+
+<script>
+const phases = {
+  "Foundation":      { color: "#2d6a2d", light: "#f0f7f0", dot: "#4a9e4a" },
+  "Systems":         { color: "#1a3a7a", light: "#f0f4fc", dot: "#3d6fd4" },
+  "Tooling":         { color: "#7a2d00", light: "#fdf4ef", dot: "#d45a1a" },
+  "Data Structures": { color: "#006060", light: "#edf9f9", dot: "#148a8a" },
+  "Performance":     { color: "#5a5a00", light: "#fafaed", dot: "#8c8c14" },
+  "Type System":     { color: "#5a0078", light: "#faf0fc", dot: "#a030c8" },
+  "Async Internals": { color: "#003d5a", light: "#edf5fa", dot: "#0a7ab0" },
+  "FFI & Interop":   { color: "#5a3a00", light: "#faf5ed", dot: "#a87820" },
+};
+
+const diffLabel = ["","Beginner","Easy","Intermediate","Hard","Expert"];
+
+// weeks = range at 5-10hrs/week; hours = total estimated hours
+const projects = [
+  { id:1,  weeks:"1–2 weeks",  hours:"10–20 hrs", title:"Thread Pool from Scratch",    difficulty:2, phase:"Foundation",      tags:["std::thread","Arc<Mutex<>>","mpsc"], description:"Build a fixed-size thread pool using std::thread, Arc<Mutex<>>, and mpsc channels. Workers pick jobs off a shared queue. Teaches the ownership model under concurrent access without any async machinery.", resources:[{label:"The Book – Ch. 16: Fearless Concurrency",url:"https://doc.rust-lang.org/book/ch16-00-concurrency.html"},{label:"The Book – Ch. 20: Final Project",url:"https://doc.rust-lang.org/book/ch20-00-final-project-a-web-server.html"},{label:"Crust of Rust: Channels",url:"https://www.youtube.com/watch?v=b4mS5UPHh20"}] },
+  { id:2,  weeks:"2–3 weeks",  hours:"15–25 hrs", title:"Lock-Free Queue",             difficulty:3, phase:"Foundation",      tags:["Atomics","unsafe","Memory Ordering"], description:"Implement a Michael-Scott lock-free queue using std::sync::atomic. Forces you to reason about memory ordering (Acquire/Release/SeqCst) and write correct unsafe Rust — one of the most educational exercises in the language.", resources:[{label:"Rust Atomics and Locks – Mara Bos",url:"https://marabos.nl/atomics/"},{label:"Nomicon – Atomics",url:"https://doc.rust-lang.org/nomicon/atomics.html"},{label:"Crust of Rust: Atomics",url:"https://www.youtube.com/watch?v=rMGWeSjctlY"}] },
+  { id:3,  weeks:"1–2 weeks",  hours:"10–20 hrs", title:"Custom Bump Allocator",       difficulty:3, phase:"Systems",         tags:["Memory","unsafe","GlobalAlloc"], description:"Implement a bump (arena) allocator using raw pointers and the GlobalAlloc trait. Teaches page-aligned memory, pointer arithmetic, and how to build safe abstractions over unsafe internals.", resources:[{label:"Nomicon – Unsafe Rust",url:"https://doc.rust-lang.org/nomicon/meet-safe-and-unsafe.html"},{label:"Allocator Designs – Phil Opp",url:"https://os.phil-opp.com/allocator-designs/"},{label:"std::alloc docs",url:"https://doc.rust-lang.org/std/alloc/index.html"}] },
+  { id:4,  weeks:"3–5 weeks",  hours:"25–45 hrs", title:"Intrusive Linked List",       difficulty:4, phase:"Systems",         tags:["unsafe","Lifetimes","Aliasing"], description:"Build a linked list where nodes carry their own list structure intrusively. The canonical 'prove you understand Rust ownership' exercise — deceptively hard and deeply illuminating about lifetimes and aliasing.", resources:[{label:"Too Many Linked Lists",url:"https://rust-unofficial.github.io/too-many-lists/"},{label:"Nomicon – Working with Unsafe",url:"https://doc.rust-lang.org/nomicon/working-with-unsafe.html"},{label:"Crust of Rust: Smart Pointers",url:"https://www.youtube.com/watch?v=8O0Nt9qY_vo"}] },
+  { id:5,  weeks:"2–3 weeks",  hours:"15–25 hrs", title:"htop-lite: Process Monitor",  difficulty:3, phase:"Tooling",         tags:["TUI","ratatui","/proc"], description:"A live process monitor that reads /proc on Linux and renders a terminal UI with ratatui. Combines OS-level file parsing, real-time updates, and terminal rendering. Practical and immediately useful.", resources:[{label:"ratatui book",url:"https://ratatui.rs/introduction/"},{label:"proc filesystem – kernel docs",url:"https://www.kernel.org/doc/html/latest/filesystems/proc.html"},{label:"clap – argument parsing",url:"https://docs.rs/clap/latest/clap/"}] },
+  { id:6,  weeks:"3–5 weeks",  hours:"25–45 hrs", title:"jq-lite: JSON Query CLI",     difficulty:4, phase:"Tooling",         tags:["nom","serde_json","DSL"], description:"Build a mini jq-style tool with a lexer + recursive descent parser. Teaches parser combinators, AST design, and idiomatic error handling with thiserror.", resources:[{label:"nom – parser combinators",url:"https://github.com/rust-bakery/nom/blob/main/doc/making_a_new_parser_from_scratch.md"},{label:"Crafting Interpreters",url:"https://craftinginterpreters.com/"},{label:"thiserror & anyhow",url:"https://docs.rs/thiserror/latest/thiserror/"}] },
+  { id:7,  weeks:"5–8 weeks",  hours:"40–70 hrs", title:"B-Tree Map",                  difficulty:5, phase:"Data Structures", tags:["Lifetimes","unsafe","Algorithms"], description:"Reimplement std's BTreeMap from scratch. Node splitting, merging, and rebalancing requires carefully managing ownership across tree mutations — one of the most complex ownership puzzles in safe Rust.", resources:[{label:"std BTreeMap source",url:"https://github.com/rust-lang/rust/blob/master/library/alloc/src/collections/btree/map.rs"},{label:"Introduction to Algorithms",url:"https://mitpress.mit.edu/9780262046305/"},{label:"Nomicon – Variance",url:"https://doc.rust-lang.org/nomicon/subtyping.html"}] },
+  { id:8,  weeks:"2–4 weeks",  hours:"20–35 hrs", title:"mmap Key-Value Store",        difficulty:4, phase:"Systems",         tags:["memmap2","I/O","unsafe"], description:"A file-backed key-value store using memory-mapped files. Teaches page-aligned memory, crash consistency, and how to build safe Rust APIs over inherently unsafe OS primitives.", resources:[{label:"memmap2 crate docs",url:"https://docs.rs/memmap2/latest/memmap2/"},{label:"Designing Data-Intensive Applications",url:"https://dataintensive.net/"},{label:"Linux mmap man page",url:"https://man7.org/linux/man-pages/man2/mmap.2.html"}] },
+  { id:9,  weeks:"4–6 weeks",  hours:"35–55 hrs", title:"Columnar Data Engine",        difficulty:5, phase:"Performance",     tags:["criterion","Cache Layout","SIMD"], description:"A mini Apache Arrow-style in-memory columnar store with vectorized filtering and aggregation. Teaches cache-friendly data layout and how representation affects throughput.", resources:[{label:"Apache Arrow format spec",url:"https://arrow.apache.org/docs/format/Columnar.html"},{label:"criterion benchmarking guide",url:"https://bheisler.github.io/criterion.rs/book/"},{label:"Gallery of Cache Effects",url:"https://igoro.com/archive/gallery-of-processor-cache-effects/"}] },
+  { id:10, weeks:"3–5 weeks",  hours:"25–45 hrs", title:"SIMD String Search",          difficulty:5, phase:"Performance",     tags:["std::arch","unsafe","Benchmarking"], description:"Use std::arch to implement a SIMD-accelerated substring search that beats the naive approach. Benchmark against str::contains and memchr. The deepest you can go into hardware-aware Rust without writing assembly.", resources:[{label:"std::arch docs",url:"https://doc.rust-lang.org/std/arch/index.html"},{label:"SIMD for C++ developers",url:"https://const.me/articles/simd/simd.pdf"},{label:"memchr – study SIMD impl",url:"https://github.com/BurntSushi/memchr"}] },
+  { id:11, weeks:"2–3 weeks",  hours:"15–25 hrs", title:"Trait-Driven Plugin System",  difficulty:3, phase:"Type System",     tags:["dyn Trait","Generics","Associated Types"], description:"Build a runtime-loadable plugin architecture using dyn Trait, associated types, and Box<dyn Error>. Forces deep engagement with the trait object model, coherence, and object safety rules.", resources:[{label:"The Book – Ch. 17: Trait Objects",url:"https://doc.rust-lang.org/book/ch17-00-oop.html"},{label:"Crust of Rust: Dispatch & Fat Pointers",url:"https://www.youtube.com/watch?v=xcygqF5LVmM"},{label:"Reference – Object Safety",url:"https://doc.rust-lang.org/reference/items/traits.html#object-safety"}] },
+  { id:12, weeks:"3–5 weeks",  hours:"25–45 hrs", title:"Derive Macro Crate",          difficulty:4, phase:"Type System",     tags:["proc macros","syn","quote"], description:"Write a procedural macro that derives a custom trait (Builder or Diff). Covers the full macro pipeline: syn for parsing token streams, quote for codegen, and structuring a two-crate workspace.", resources:[{label:"The Little Book of Rust Macros",url:"https://veykril.github.io/tlborm/"},{label:"Crust of Rust: Proc Macros",url:"https://www.youtube.com/watch?v=geovSK3wMB8"},{label:"syn crate docs",url:"https://docs.rs/syn/latest/syn/"}] },
+  { id:13, weeks:"4–7 weeks",  hours:"35–65 hrs", title:"Mini Async Executor",         difficulty:5, phase:"Async Internals", tags:["Future","Poll","Waker","Reactor"], description:"Implement a single-threaded async executor from scratch: task queue, Arc-backed Waker, and a reactor loop. No tokio. The only way to truly understand what async runtimes do under the hood.", resources:[{label:"Asynchronous Programming in Rust",url:"https://rust-lang.github.io/async-book/"},{label:"Crust of Rust: async/await",url:"https://www.youtube.com/watch?v=ThjvMReOXYM"},{label:"futures-rs executor source",url:"https://github.com/rust-lang/futures-rs/tree/master/futures-executor/src"}] },
+  { id:14, weeks:"2–4 weeks",  hours:"20–35 hrs", title:"C FFI Bridge",                difficulty:4, phase:"FFI & Interop",   tags:["bindgen","cbindgen","extern"], description:"Wrap a real C library (sqlite3 or zlib) with an idiomatic safe Rust API. Use bindgen to generate unsafe bindings, then build a safe wrapper. Use cbindgen to expose Rust back to C.", resources:[{label:"Nomicon – FFI",url:"https://doc.rust-lang.org/nomicon/ffi.html"},{label:"bindgen user guide",url:"https://rust-lang.github.io/rust-bindgen/"},{label:"cbindgen docs",url:"https://github.com/mozilla/cbindgen/blob/master/docs.md"}] },
+];
+
+let activePhase = "All";
+
+function cssVars(phase) {
+  const p = phases[phase] || {};
+  return `--phase-color:${p.color};--phase-light:${p.light};--phase-dot:${p.dot};`;
+}
+
+function renderFilterBar() {
+  const bar = document.getElementById("filter-bar");
+  const allPhases = ["All", ...Object.keys(phases)];
+  bar.innerHTML = allPhases.map(ph => {
+    const col = phases[ph] || {};
+    return `<button class="filter-btn${activePhase===ph?' active':''}" data-phase="${ph}"
+      style="${activePhase===ph?`--phase-color:${col.dot||'#1a1a1a'};`:''}">
+      ${ph}
+    </button>`;
+  }).join("");
+  bar.querySelectorAll(".filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activePhase = btn.dataset.phase;
+      renderAll();
+    });
+  });
+}
+
+function renderCards() {
+  const list = document.getElementById("card-list");
+  const filtered = activePhase === "All" ? projects : projects.filter(p => p.phase === activePhase);
+  list.innerHTML = filtered.map(proj => {
+    const ph = phases[proj.phase];
+    const dots = [1,2,3,4,5].map(i =>
+      `<div class="diff-dot ${i<=proj.difficulty?'on':'off'}"></div>`
+    ).join("");
+    const previewTags = proj.tags.slice(0,2).map(t => `<span class="tag">${t}</span>`).join("");
+    const allTags = proj.tags.map(t => `<span class="tag-full">${t}</span>`).join("");
+    const resources = proj.resources.map((r,i) =>
+      `<a class="resource-link" href="${r.url}" target="_blank" rel="noopener noreferrer">
+        <span class="resource-num">${String(i+1).padStart(2,"0")}</span>${r.label}
+      </a>`
+    ).join("");
+    return `
+    <div class="card" id="card-${proj.id}" style="${cssVars(proj.phase)}">
+      <button class="card-header" onclick="toggleCard(${proj.id})">
+        <span class="card-num">${String(proj.id).padStart(2,"0")}</span>
+        <div class="card-title-wrap">
+          <div class="card-title">${proj.title}</div>
+          <div class="card-phase">${proj.phase}</div>
+        </div>
+        <div class="card-tags">${previewTags}</div>
+        <div class="card-diff">
+          <div class="diff-dots">${dots}</div>
+          <span class="diff-label">${diffLabel[proj.difficulty]}</span>
+        </div>
+        <div class="card-time">
+          <span class="time-weeks">${proj.weeks}</span>
+          <span class="time-hours">${proj.hours}</span>
+        </div>
+        <span class="chevron">▾</span>
+      </button>
+      <div class="card-body">
+        <div class="time-block">
+          <div class="time-block-item">
+            <span class="time-block-label">Duration</span>
+            <span class="time-block-value">${proj.weeks}</span>
+          </div>
+          <div class="time-block-item">
+            <span class="time-block-label">Total hours</span>
+            <span class="time-block-value">${proj.hours}</span>
+          </div>
+          <div class="time-block-item">
+            <span class="time-block-label">Assumes</span>
+            <span class="time-block-value">5–10 hrs / week</span>
+          </div>
+        </div>
+        <div class="card-all-tags">${allTags}</div>
+        <p class="card-desc">${proj.description}</p>
+        <div class="card-resources">
+          <div class="resources-label">Resources</div>
+          ${resources}
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderLegend() {
+  const legend = document.getElementById("legend");
+  legend.innerHTML = Object.entries(phases).map(([name, col]) =>
+    `<div class="legend-item">
+      <div class="legend-dot" style="background:${col.dot}"></div>
+      <span class="legend-label">${name}</span>
+    </div>`
+  ).join("");
+}
+
+function toggleCard(id) {
+  const card = document.getElementById("card-"+id);
+  card.classList.toggle("open");
+}
+
+function renderAll() {
+  renderFilterBar();
+  renderCards();
+  renderLegend();
+}
+
+renderAll();
+</script>
+</body>
+</html>
