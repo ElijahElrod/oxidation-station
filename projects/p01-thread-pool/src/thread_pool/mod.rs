@@ -2,6 +2,8 @@ use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread::{JoinHandle, ThreadId};
 
+pub mod fixed_thread_pool;
+
 type Task = Box<dyn FnOnce() + Send + 'static>;
 
 ///
@@ -31,7 +33,7 @@ pub fn worker(shared_state: SharedState, reserved_threads: usize) {
 
                 // Don't run anymore if we're draining/shutting down
                 if state.draining && state.queue.is_empty() {
-                    state.active_threads -= 1;
+                    state.current_threads -= 1;
                     return;
                 }
 
